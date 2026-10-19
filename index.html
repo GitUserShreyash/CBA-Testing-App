@@ -1,0 +1,241 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CBA Test Lab — Continuous Behavioral Authentication</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div id="auth-overlay" class="overlay active">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <div class="logo-icon">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <circle cx="16" cy="16" r="15" stroke="url(#g1)" stroke-width="2"/>
+            <path d="M10 16l4 4 8-8" stroke="url(#g1)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs>
+              <linearGradient id="g1" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#6366f1"/><stop offset="1" stop-color="#8b5cf6"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span>CBA Test Lab</span>
+      </div>
+      <div class="auth-tabs">
+        <button id="tab-login" class="auth-tab active" onclick="switchTab('login')">Sign In</button>
+        <button id="tab-register" class="auth-tab" onclick="switchTab('register')">Register</button>
+      </div>
+      <form id="login-form" class="auth-form" onsubmit="handleLogin(event)">
+        <div class="field-group"><label>Username</label><input id="login-username" type="text" placeholder="Enter your username" autocomplete="username" required /></div>
+        <div class="field-group"><label>Password</label><input id="login-password" type="password" placeholder="Enter your password" autocomplete="current-password" required /></div>
+        <div id="login-error" class="form-error hidden"></div>
+        <button type="submit" class="btn-primary" id="login-btn"><span class="btn-text">Sign In</span><span class="btn-spinner hidden"></span></button>
+      </form>
+      <form id="register-form" class="auth-form hidden" onsubmit="handleRegister(event)">
+        <div class="field-group"><label>Username</label><input id="reg-username" type="text" placeholder="Choose a username" autocomplete="username" required /></div>
+        <div class="field-group"><label>Email</label><input id="reg-email" type="email" placeholder="your@email.com" autocomplete="email" required /></div>
+        <div class="field-group"><label>Password</label><input id="reg-password" type="password" placeholder="Choose a strong password" autocomplete="new-password" required /></div>
+        <div id="register-error" class="form-error hidden"></div>
+        <button type="submit" class="btn-primary" id="register-btn"><span class="btn-text">Create Account</span><span class="btn-spinner hidden"></span></button>
+      </form>
+      <p class="auth-note">&#128274; No keystrokes are recorded &mdash; only timing patterns</p>
+    </div>
+  </div>
+
+  <div id="app" class="hidden">
+    <nav class="topnav">
+      <div class="nav-left">
+        <svg width="22" height="22" viewBox="0 0 32 32" fill="none" style="flex-shrink:0">
+          <circle cx="16" cy="16" r="15" stroke="url(#gn)" stroke-width="2"/>
+          <path d="M10 16l4 4 8-8" stroke="url(#gn)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs><linearGradient id="gn" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse"><stop stop-color="#6366f1"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs>
+        </svg>
+        <span class="nav-title">CBA Test Lab</span>
+        <span class="nav-badge" id="session-badge">Initializing&hellip;</span>
+      </div>
+      <div class="nav-right">
+        <span class="nav-user" id="nav-username">&#8212;</span>
+        <button class="btn-logout" onclick="handleLogout()" id="logout-btn">Logout</button>
+      </div>
+    </nav>
+
+    <div class="app-layout">
+      <aside class="sidebar">
+        <div class="panel risk-panel">
+          <div class="panel-header">
+            <span class="panel-title">Live Risk Score</span>
+            <span class="pulse-dot" id="pulse-dot"></span>
+          </div>
+          <div class="gauge-wrap">
+            <svg class="gauge-svg" viewBox="0 0 200 120">
+              <defs>
+                <linearGradient id="arc-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop id="arc-stop1" offset="0%" stop-color="#10b981"/>
+                  <stop id="arc-stop2" offset="100%" stop-color="#34d399"/>
+                </linearGradient>
+              </defs>
+              <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#1e1e2e" stroke-width="14" stroke-linecap="round"/>
+              <path id="gauge-arc" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="url(#arc-grad)" stroke-width="14" stroke-linecap="round" stroke-dasharray="251.2" stroke-dashoffset="251.2"/>
+              <line id="gauge-needle" x1="100" y1="100" x2="100" y2="28" stroke="#e2e8f0" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="100" cy="100" r="5" fill="#e2e8f0"/>
+              <text x="20" y="118" fill="#64748b" font-size="9" font-family="Inter">0</text>
+              <text x="172" y="118" fill="#64748b" font-size="9" font-family="Inter">100</text>
+            </svg>
+            <div class="gauge-score">
+              <span id="risk-score-val">&#8212;</span>
+            </div>
+          </div>
+          <div class="risk-level-badge" id="risk-level-badge" data-level="WAITING">WAITING</div>
+          <div class="risk-status" id="risk-status">No data yet</div>
+        </div>
+
+        <div class="panel enrollment-panel">
+          <div class="panel-header">
+            <span class="panel-title">Enrollment Progress</span>
+            <span id="enrollment-state-tag" class="state-tag">&#8212;</span>
+          </div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-bg"><div class="progress-bar-fill" id="enrollment-bar" style="width:0%"></div></div>
+            <div class="progress-labels"><span id="enrollment-count">0</span><span>/ 15,000</span></div>
+          </div>
+          <div class="enrollment-pct" id="enrollment-pct">0.0% enrolled</div>
+        </div>
+
+        <div class="panel session-panel">
+          <div class="panel-title" style="margin-bottom:12px">Session Info</div>
+          <div class="info-row"><span class="info-key">Session ID</span><span class="info-val mono" id="info-session-id">&#8212;</span></div>
+          <div class="info-row"><span class="info-key">Window #</span><span class="info-val mono" id="info-window">&#8212;</span></div>
+          <div class="info-row"><span class="info-key">Batches Sent</span><span class="info-val mono" id="info-batches">0</span></div>
+          <div class="info-row"><span class="info-key">Events Buffered</span><span class="info-val mono" id="info-buffered">0</span></div>
+          <div class="info-row"><span class="info-key">Backend</span><span class="info-val mono">localhost:8080</span></div>
+        </div>
+
+        <div class="panel last-decision-panel">
+          <div class="panel-title" style="margin-bottom:10px">Last Decision</div>
+          <pre class="json-block" id="last-decision-json">{ "status": "waiting" }</pre>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <div class="content-header">
+          <h1>Behavioral Feature Test Playground</h1>
+          <p>Interact with each section below to generate telemetry. The SDK collects keyboard timing, mouse dynamics, click rhythms, and scroll patterns.</p>
+        </div>
+
+        <div class="test-grid">
+
+          <div class="test-card full-width">
+            <div class="test-card-header">
+              <div class="test-icon">&#9000;&#65039;</div>
+              <div>
+                <div class="test-card-title">Keystroke Dynamics (x1&ndash;x4)</div>
+                <div class="test-card-sub">Mean &amp; std of key hold time and inter-key flight time</div>
+              </div>
+              <div class="event-counter" id="key-counter">0 events</div>
+            </div>
+            <textarea id="typing-area" class="typing-area" placeholder="Type freely here&#8230; Your typing rhythm is captured, never the characters.&#10;&#10;Try different speeds: fast burst typing, slow careful typing, copying a sentence multiple times.&#10;The more varied your input, the better the model learns your unique pattern." rows="5"></textarea>
+            <div class="feature-chips">
+              <div class="chip"><span class="chip-label">Mean Hold</span><span class="chip-val" id="feat-hold">&#8212;</span></div>
+              <div class="chip"><span class="chip-label">Std Hold</span><span class="chip-val" id="feat-hold-std">&#8212;</span></div>
+              <div class="chip"><span class="chip-label">Mean Flight</span><span class="chip-val" id="feat-flight">&#8212;</span></div>
+              <div class="chip"><span class="chip-label">Std Flight</span><span class="chip-val" id="feat-flight-std">&#8212;</span></div>
+            </div>
+          </div>
+
+          <div class="test-card">
+            <div class="test-card-header">
+              <div class="test-icon">&#128433;&#65039;</div>
+              <div>
+                <div class="test-card-title">Mouse Dynamics (x5&ndash;x7)</div>
+                <div class="test-card-sub">Mean velocity, std velocity, mean acceleration</div>
+              </div>
+              <div class="event-counter" id="mouse-counter">0 events</div>
+            </div>
+            <div class="mouse-playground" id="mouse-playground">
+              <div class="mouse-hint">Move your mouse freely &bull; Click the targets</div>
+              <div class="targets-row">
+                <button class="mouse-target" id="t1" onclick="targetClicked('t1')">&#11835;</button>
+                <button class="mouse-target" id="t2" onclick="targetClicked('t2')">&#11835;</button>
+                <button class="mouse-target" id="t3" onclick="targetClicked('t3')">&#11835;</button>
+              </div>
+              <div class="cursor-pos" id="cursor-pos">x: &#8212; &nbsp; y: &#8212;</div>
+            </div>
+            <div class="feature-chips">
+              <div class="chip"><span class="chip-label">Mean Velocity</span><span class="chip-val" id="feat-vel">&#8212;</span></div>
+              <div class="chip"><span class="chip-label">Std Velocity</span><span class="chip-val" id="feat-vel-std">&#8212;</span></div>
+              <div class="chip"><span class="chip-label">Mean Accel</span><span class="chip-val" id="feat-accel">&#8212;</span></div>
+            </div>
+          </div>
+
+          <div class="test-card">
+            <div class="test-card-header">
+              <div class="test-icon">&#11014;&#65039;&#11015;&#65039;</div>
+              <div>
+                <div class="test-card-title">Click &amp; Scroll (x8&ndash;x10)</div>
+                <div class="test-card-sub">Click interval, scroll speed, idle gap</div>
+              </div>
+              <div class="event-counter" id="scroll-counter">0 events</div>
+            </div>
+            <div class="scroll-area" id="scroll-area">
+              <p>&#128073; Scroll this panel up and down — your scroll speed captures x9.</p>
+              <div class="click-cards">
+                <div class="click-card" onclick="clickCardHit(this)">Tap A<br/><small>rapid</small></div>
+                <div class="click-card" onclick="clickCardHit(this)">Tap B<br/><small>slow</small></div>
+                <div class="click-card" onclick="clickCardHit(this)">Tap C<br/><small>alternate</small></div>
+              </div>
+              <p>Click the cards above to generate click-interval data (x8).</p>
+              <p>Try tapping rapidly, then slowly. Pause for a moment — that pause is x10 (idle gap).</p>
+              <p>Scroll down some more&hellip;</p>
+              <p>Your natural scroll rhythm is unique to you.</p>
+              <p>Keep going&hellip;</p>
+              <p>Almost done with this panel.</p>
+            </div>
+            <div class="feature-chips">
+              <div class="chip"><span class="chip-label">Mean Click Interval</span><span class="chip-val" id="feat-click">&#8212;</span></div>
+              <div class="chip"><span class="chip-label">Mean Scroll Speed</span><span class="chip-val" id="feat-scroll">&#8212;</span></div>
+              <div class="chip"><span class="chip-label">Mean Idle Gap</span><span class="chip-val" id="feat-idle">&#8212;</span></div>
+            </div>
+          </div>
+
+          <div class="test-card full-width">
+            <div class="test-card-header">
+              <div class="test-icon">&#128203;</div>
+              <div>
+                <div class="test-card-title">Live Activity Log</div>
+                <div class="test-card-sub">Real-time SDK batch submissions and risk decisions</div>
+              </div>
+              <button class="btn-clear" onclick="clearLog()">Clear</button>
+            </div>
+            <div class="activity-log" id="activity-log">
+              <div class="log-entry info">&#128276; CBA Test Lab ready. Sign in to begin monitoring.</div>
+            </div>
+          </div>
+
+          <div class="test-card full-width action-card">
+            <div class="action-row">
+              <div>
+                <div class="test-card-title">Manual Controls</div>
+                <div class="test-card-sub">Force a batch flush or poll enrollment and risk from the backend</div>
+              </div>
+              <div class="action-btns">
+                <button class="btn-action" id="flush-btn" onclick="manualFlush()" disabled>&#9889; Flush Batch Now</button>
+                <button class="btn-action secondary" onclick="refreshEnrollment()" id="refresh-enrollment-btn" disabled>&#128260; Refresh Enrollment</button>
+                <button class="btn-action secondary" onclick="refreshRisk()" id="refresh-risk-btn" disabled>&#128202; Refresh Risk</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="cba-sdk-global.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
