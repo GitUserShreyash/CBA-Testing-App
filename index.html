@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CBA Gaming Arena — Continuous Behavioral Authentication</title>
+  <title>CBA SaaS Workspace — Continuous Behavioral Authentication</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
@@ -25,7 +25,7 @@
             </defs>
           </svg>
         </div>
-        <span>CBA Gaming Arena</span>
+        <span>CBA Enterprise Portal</span>
       </div>
       <div class="auth-tabs">
         <button id="tab-login" class="auth-tab active" onclick="switchTab('login')">Sign In</button>
@@ -35,7 +35,7 @@
         <div class="field-group"><label>Username</label><input id="login-username" type="text" placeholder="Enter your username" autocomplete="username" required /></div>
         <div class="field-group"><label>Password</label><input id="login-password" type="password" placeholder="Enter your password" autocomplete="current-password" required /></div>
         <div id="login-error" class="form-error hidden"></div>
-        <button type="submit" class="btn-primary" id="login-btn"><span class="btn-text">Sign In &amp; Enter Arena</span><span class="btn-spinner hidden"></span></button>
+        <button type="submit" class="btn-primary" id="login-btn"><span class="btn-text">Sign In &amp; Enter Workspace</span><span class="btn-spinner hidden"></span></button>
       </form>
       <form id="register-form" class="auth-form hidden" onsubmit="handleRegister(event)">
         <div class="field-group"><label>Username</label><input id="reg-username" type="text" placeholder="Choose a username" autocomplete="username" required /></div>
@@ -44,7 +44,7 @@
         <div id="register-error" class="form-error hidden"></div>
         <button type="submit" class="btn-primary" id="register-btn"><span class="btn-text">Create Account</span><span class="btn-spinner hidden"></span></button>
       </form>
-      <p class="auth-note">&#128274; Passive behavioral biometrics: no typed characters recorded &mdash; only timing and neuromotor patterns</p>
+      <p class="auth-note">&#128274; Passive behavioral biometrics: no typed characters recorded &mdash; only natural timing, navigation, and interaction dynamics</p>
     </div>
   </div>
 
@@ -58,7 +58,7 @@
           <path d="M10 16l4 4 8-8" stroke="url(#gn)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
           <defs><linearGradient id="gn" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse"><stop stop-color="#6366f1"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs>
         </svg>
-        <span class="nav-title">CBA Gaming Arena</span>
+        <span class="nav-title">CBA Enterprise SaaS Portal</span>
         <span class="nav-badge" id="session-badge">Initializing&hellip;</span>
       </div>
       <div class="nav-right">
@@ -129,192 +129,102 @@
         </div>
       </aside>
 
-      <!-- MAIN CONTENT: GAMING ARENA -->
+      <!-- MAIN CONTENT: REALISTIC SAAS WORKSPACE -->
       <main class="main-content">
-        <!-- ARENA BANNER HEADER -->
-        <div class="arena-header">
-          <div class="header-badge">&#127918; CBA BIOMETRIC GAMING ARENA</div>
-          <h1>Play While We Authenticate</h1>
-          <p>Play interactive games designed to exercise varied neuromotor reflexes. As you play, the CBA SDK passively captures natural mouse trajectories, velocity curves, flight intervals, and interaction rhythms.</p>
+        <!-- WORKSPACE HEADER -->
+        <div class="workspace-header">
+          <div class="header-badge">&#128188; REALISTIC ENTERPRISE WORKSPACE</div>
+          <h1>Enterprise Workflows &amp; Interaction Playground</h1>
+          <p>Perform authentic web application tasks: submit incident tickets, navigate data tables, search records, and review security documentation. The CBA SDK silently models your genuine unhurried behavioral biometrics without artificial gaming distortion.</p>
         </div>
 
-        <!-- ARENA GAME NAVIGATION TABS -->
-        <div class="arena-tabs">
-          <button class="arena-tab active" id="tab-game-mouse" onclick="switchArenaGame('mouse')">
-            <span class="tab-icon">&#127919;</span>
-            <span class="tab-label">Target Challenge</span>
-            <span class="tab-badge">Mouse x5&ndash;x7</span>
-          </button>
-          <button class="arena-tab" id="tab-game-typing" onclick="switchArenaGame('typing')">
-            <span class="tab-icon">&#9000;&#65039;</span>
-            <span class="tab-label">Speed Typer</span>
+        <!-- WORKSPACE NAVIGATION TABS -->
+        <div class="workspace-tabs">
+          <button class="ws-tab active" id="tab-ws-form" onclick="switchWorkspaceTab('form')">
+            <span class="tab-icon">&#128221;</span>
+            <span class="tab-label">Incident Report Form</span>
             <span class="tab-badge">Keyboard x1&ndash;x4</span>
           </button>
-          <button class="arena-tab" id="tab-game-scroll" onclick="switchArenaGame('scroll')">
-            <span class="tab-icon">&#128220;</span>
-            <span class="tab-label">Cyber Scroll</span>
+          <button class="ws-tab" id="tab-ws-table" onclick="switchWorkspaceTab('table')">
+            <span class="tab-icon">&#128101;</span>
+            <span class="tab-label">User Management Table</span>
+            <span class="tab-badge">Mouse x5&ndash;x7</span>
+          </button>
+          <button class="ws-tab" id="tab-ws-docs" onclick="switchWorkspaceTab('docs')">
+            <span class="tab-icon">&#128214;</span>
+            <span class="tab-label">Policy Reader &amp; Logs</span>
             <span class="tab-badge">Rhythm x8&ndash;x10</span>
           </button>
-          <button class="arena-tab" id="tab-game-telemetry" onclick="switchArenaGame('telemetry')">
+          <button class="ws-tab" id="tab-ws-diagnostics" onclick="switchWorkspaceTab('diagnostics')">
             <span class="tab-icon">&#128202;</span>
-            <span class="tab-label">Telemetry &amp; Logs</span>
-            <span class="tab-badge">Dev Tools</span>
+            <span class="tab-label">Pipeline Diagnostics</span>
+            <span class="tab-badge">Telemetry</span>
           </button>
         </div>
 
         <!-- ============================================================== -->
-        <!-- GAME 1: DYNAMIC TARGET CHALLENGE (MOUSE DYNAMICS)             -->
+        <!-- TAB 1: INCIDENT REPORT FORM (KEYSTROKE & FORM ENTRY)           -->
         <!-- ============================================================== -->
-        <div class="game-view" id="view-game-mouse">
-          <div class="arena-card">
-            <div class="arena-hud">
-              <div class="hud-left">
-                <span class="hud-tag">&#127919; MOUSE BEHAVIOUR TEST</span>
-                <span class="hud-phase-name" id="dtc-phase-title">Phase 1 of 3: Single Target Calibration</span>
+        <div class="ws-view" id="view-ws-form">
+          <div class="ws-card">
+            <div class="ws-card-header">
+              <div>
+                <h3>Security Incident &amp; Request Form</h3>
+                <p>Type normally at your everyday workplace cadence. Demonstrates natural hold times, flight times, and focus transitions between fields.</p>
               </div>
-              <div class="hud-center">
-                <div class="hud-stat"><span class="stat-label">TIME</span><span class="stat-val mono" id="dtc-time">00:45</span></div>
-                <div class="hud-stat"><span class="stat-label">SCORE</span><span class="stat-val mono accent" id="dtc-score">0</span></div>
-                <div class="hud-stat"><span class="stat-label">HITS</span><span class="stat-val mono" id="dtc-hits">0</span></div>
-                <div class="hud-stat"><span class="stat-label">ACCURACY</span><span class="stat-val mono" id="dtc-acc">100%</span></div>
-              </div>
-              <div class="hud-right">
-                <button class="btn-icon" id="dtc-sound-btn" onclick="toggleDtcSound()" title="Toggle Sound">&#128266;</button>
-                <button class="btn-icon" onclick="resetDtcGame()" title="Reset Game">&#128257;</button>
+              <div class="header-actions">
+                <button class="btn-sm" onclick="populateSampleText()">&#128203; Insert Sample Prompt</button>
+                <button class="btn-sm secondary" onclick="resetFormFields()">&#128465; Clear</button>
               </div>
             </div>
 
-            <!-- Dynamic Directive Instruction Banner -->
-            <div class="arena-instruction-wrap">
-              <div class="arena-instruction" id="dtc-instruction">
-                <span class="instr-pulse"></span>
-                <span id="dtc-instruction-text">CLICK START CHALLENGE TO BEGIN</span>
+            <form class="saas-form" onsubmit="handleFormSubmit(event)">
+              <div class="form-row">
+                <div class="field-group flex-2">
+                  <label>Incident Subject / Ticket Title</label>
+                  <input type="text" id="ticket-subject" placeholder="e.g. Unusual login alert from secondary IP block" />
+                </div>
+                <div class="field-group flex-1">
+                  <label>Service Category</label>
+                  <select id="ticket-category">
+                    <option value="auth">IAM &amp; Authentication</option>
+                    <option value="access">Access Control &amp; RBAC</option>
+                    <option value="api">API Gateway &amp; Tokens</option>
+                    <option value="infra">Cloud Infrastructure</option>
+                  </select>
+                </div>
+                <div class="field-group flex-1">
+                  <label>Severity Level</label>
+                  <select id="ticket-severity">
+                    <option value="low">Low (P3)</option>
+                    <option value="med" selected>Medium (P2)</option>
+                    <option value="high">High (P1)</option>
+                    <option value="crit">Critical (P0)</option>
+                  </select>
+                </div>
               </div>
-            </div>
 
-            <!-- Main Interactive Target Arena Board -->
-            <div class="dtc-board" id="dtc-board">
-              <!-- Start Screen Overlay -->
-              <div class="board-overlay" id="dtc-start-overlay">
-                <div class="overlay-content">
-                  <div class="game-icon-large">&#127919;</div>
-                  <h2>Dynamic Target Challenge</h2>
-                  <p class="game-desc">A continuous 45-second mouse interaction test spanning 3 dynamic phases:</p>
-                  <div class="phase-preview-grid">
-                    <div class="phase-item">
-                      <span class="phase-num">01</span>
-                      <div>
-                        <strong>Single Target</strong>
-                        <p>Click random targets to calibrate base velocity &amp; trajectory.</p>
-                      </div>
-                    </div>
-                    <div class="phase-item">
-                      <span class="phase-num">02</span>
-                      <div>
-                        <strong>Shape &amp; Color Selection</strong>
-                        <p>Identify &amp; click specified shapes (Red Circle, Blue Square, etc.).</p>
-                      </div>
-                    </div>
-                    <div class="phase-item">
-                      <span class="phase-num">03</span>
-                      <div>
-                        <strong>Speed &amp; Precision Rush</strong>
-                        <p>Rapidly vanishing targets with large, medium &amp; micro sizes.</p>
-                      </div>
-                    </div>
-                  </div>
-                  <button class="btn-play-game" id="dtc-start-btn" onclick="startDtcGame()">
-                    <span>&#9654; START 45s CHALLENGE</span>
+              <div class="field-group">
+                <label>Detailed Incident Description &amp; Analysis</label>
+                <textarea id="ticket-description" rows="5" placeholder="Describe the behavior observed, affected service endpoints, and reproduction steps. Take your time and type in your standard natural rhythm..."></textarea>
+              </div>
+
+              <div class="form-row">
+                <div class="field-group flex-2">
+                  <label>Remediation Notes / Actions Taken</label>
+                  <input type="text" id="ticket-remediation" placeholder="e.g. Session revoked; alerted SecOps; refreshed JWT keys" />
+                </div>
+                <div class="field-group flex-1" style="justify-content: flex-end;">
+                  <button type="submit" class="btn-primary" style="margin-top:auto; height:42px;">
+                    <span>&#128640; Submit Ticket &amp; Stream Batch</span>
                   </button>
                 </div>
               </div>
 
-              <!-- Complete Screen Overlay -->
-              <div class="board-overlay hidden" id="dtc-end-overlay">
-                <div class="overlay-content">
-                  <div class="game-icon-large">&#127942;</div>
-                  <h2>Challenge Complete!</h2>
-                  <p class="game-desc">Your interaction telemetry has been captured and streamed to the CBA backend.</p>
-                  <div class="summary-stats-grid">
-                    <div class="summary-stat-box"><span class="sum-lbl">FINAL SCORE</span><span class="sum-val mono accent" id="sum-score">0</span></div>
-                    <div class="summary-stat-box"><span class="sum-lbl">TOTAL HITS</span><span class="sum-val mono" id="sum-hits">0</span></div>
-                    <div class="summary-stat-box"><span class="sum-lbl">ACCURACY</span><span class="sum-val mono" id="sum-acc">100%</span></div>
-                    <div class="summary-stat-box"><span class="sum-lbl">EVENTS SENT</span><span class="sum-val mono" id="sum-events">0</span></div>
-                  </div>
-                  <div class="overlay-actions">
-                    <button class="btn-play-game" onclick="startDtcGame()"><span>&#128257; PLAY AGAIN</span></button>
-                    <button class="btn-action secondary" onclick="switchArenaGame('typing')"><span>TRY SPEED TYPER &rarr;</span></button>
-                  </div>
-                </div>
+              <div class="form-toast hidden" id="form-toast">
+                &#9989; Incident ticket submitted successfully! Telemetry flushed to CBA backend.
               </div>
-
-              <!-- Phase Banner Notification Overlay (Flashes on auto-transition) -->
-              <div class="phase-flash-banner hidden" id="dtc-phase-flash">
-                <span id="dtc-flash-text">PHASE 2: SHAPE SELECTION</span>
-              </div>
-            </div>
-
-            <!-- Phase Progress Bar -->
-            <div class="arena-progress-footer">
-              <div class="dtc-progress-track">
-                <div class="dtc-progress-fill" id="dtc-progress-fill" style="width: 0%"></div>
-              </div>
-              <div class="dtc-phase-markers">
-                <span class="marker active" id="marker-p1">P1: Calibration</span>
-                <span class="marker" id="marker-p2">P2: Shapes</span>
-                <span class="marker" id="marker-p3">P3: Speed Rush</span>
-              </div>
-            </div>
-
-            <!-- Real-Time Mouse Biometrics Chips -->
-            <div class="feature-chips-bar">
-              <div class="chip"><span class="chip-label">Mean Velocity (x5)</span><span class="chip-val" id="feat-vel">&#8212;</span></div>
-              <div class="chip"><span class="chip-label">Std Velocity (x6)</span><span class="chip-val" id="feat-vel-std">&#8212;</span></div>
-              <div class="chip"><span class="chip-label">Mean Accel (x7)</span><span class="chip-val" id="feat-accel">&#8212;</span></div>
-              <div class="chip"><span class="chip-label">Cursor Position</span><span class="chip-val mono" id="cursor-pos">x: &#8212; y: &#8212;</span></div>
-              <div class="chip"><span class="chip-label">Events Captured</span><span class="chip-val mono" id="mouse-counter">0 events</span></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ============================================================== -->
-        <!-- GAME 2: SPEED TYPER ARENA (KEYSTROKE DYNAMICS)                -->
-        <!-- ============================================================== -->
-        <div class="game-view hidden" id="view-game-typing">
-          <div class="arena-card">
-            <div class="arena-hud">
-              <div class="hud-left">
-                <span class="hud-tag">&#9000;&#65039; KEYBOARD BEHAVIOUR TEST</span>
-                <span class="hud-phase-name">Speed Typer: Keystroke Hold &amp; Flight Timing</span>
-              </div>
-              <div class="hud-center">
-                <div class="hud-stat"><span class="stat-label">TIME</span><span class="stat-val mono" id="typer-time">00:30</span></div>
-                <div class="hud-stat"><span class="stat-label">WPM</span><span class="stat-val mono accent" id="typer-wpm">0</span></div>
-                <div class="hud-stat"><span class="stat-label">ACCURACY</span><span class="stat-val mono" id="typer-acc">100%</span></div>
-                <div class="hud-stat"><span class="stat-label">KEYSTROKES</span><span class="stat-val mono" id="typer-chars">0</span></div>
-              </div>
-              <div class="hud-right">
-                <button class="btn-icon" onclick="resetTyperGame()" title="New Sentence / Reset">&#128257;</button>
-              </div>
-            </div>
-
-            <!-- Typer Interactive Container -->
-            <div class="typer-container" onclick="focusTyperInput()">
-              <div class="typer-prompt" id="typer-prompt">
-                <!-- Text with words and character spans generated dynamically -->
-              </div>
-              <input type="text" id="typer-hidden-input" class="typer-hidden-input" autocomplete="off" autocapitalize="off" spellcheck="false" />
-              <div class="typer-hint" id="typer-hint">&#128070; Click inside and start typing to begin the challenge</div>
-            </div>
-
-            <!-- Typer Sentence Selector Controls -->
-            <div class="typer-controls-bar">
-              <span class="controls-label">Preset Text:</span>
-              <button class="btn-tag active" onclick="loadTyperPreset('cyber')">Cybersecurity</button>
-              <button class="btn-tag" onclick="loadTyperPreset('neuro')">Biometrics</button>
-              <button class="btn-tag" onclick="loadTyperPreset('code')">Software Eng</button>
-              <button class="btn-action secondary" style="margin-left:auto" onclick="resetTyperGame()">&#128257; Next Sentence</button>
-            </div>
+            </form>
 
             <!-- Real-Time Keyboard Biometrics Chips -->
             <div class="feature-chips-bar">
@@ -328,94 +238,138 @@
         </div>
 
         <!-- ============================================================== -->
-        <!-- GAME 3: CYBER SCROLL & TAP (RHYTHM & INTERACTION)             -->
+        <!-- TAB 2: USER DIRECTORY TABLE (POINTER & MOUSE DYNAMICS)        -->
         <!-- ============================================================== -->
-        <div class="game-view hidden" id="view-game-scroll">
-          <div class="arena-card">
-            <div class="arena-hud">
-              <div class="hud-left">
-                <span class="hud-tag">&#128220; RHYTHM BEHAVIOUR TEST</span>
-                <span class="hud-phase-name">Cyber Scroll Runner: Velocity, Acceleration &amp; Click Rhythms</span>
+        <div class="ws-view hidden" id="view-ws-table">
+          <div class="ws-card">
+            <div class="ws-card-header">
+              <div>
+                <h3>User Identity &amp; Access Directory</h3>
+                <p>Filter, search, sort, and inspect users. Captures natural cursor pointing, hovering, button clicks, and fine micro-adjustments.</p>
               </div>
-              <div class="hud-center">
-                <div class="hud-stat"><span class="stat-label">SCROLLED</span><span class="stat-val mono" id="csr-depth">0 px</span></div>
-                <div class="hud-stat"><span class="stat-label">NODES HARVESTED</span><span class="stat-val mono accent" id="csr-score">0 / 8</span></div>
-                <div class="hud-stat"><span class="stat-label">AVG SPEED</span><span class="stat-val mono" id="csr-speed">0.0 px/ms</span></div>
-              </div>
-              <div class="hud-right">
-                <button class="btn-icon" onclick="resetScrollGame()" title="Reset Runner">&#128257;</button>
+              <div class="table-controls">
+                <input type="text" id="table-search" placeholder="&#128269; Search username or email..." oninput="filterDirectoryTable()" />
+                <select id="table-filter-role" onchange="filterDirectoryTable()">
+                  <option value="all">All Roles</option>
+                  <option value="Admin">Admin</option>
+                  <option value="Analyst">Analyst</option>
+                  <option value="Auditor">Auditor</option>
+                </select>
+                <select id="table-filter-status" onchange="filterDirectoryTable()">
+                  <option value="all">All Statuses</option>
+                  <option value="ACTIVE">ACTIVE</option>
+                  <option value="PENDING">PENDING</option>
+                  <option value="SUSPENDED">SUSPENDED</option>
+                </select>
               </div>
             </div>
 
-            <div class="csr-instructions">
-              &#128073; Scroll down through the vertical data stream to locate glowing <strong>Data Capsules</strong> and click to harvest them. Tests natural scrolling acceleration, directional reversal, and click-while-scrolling rhythms.
+            <!-- Interactive Table -->
+            <div class="table-container">
+              <table class="saas-table" id="directory-table">
+                <thead>
+                  <tr>
+                    <th onclick="sortTable(0)">User ID &#8597;</th>
+                    <th onclick="sortTable(1)">Username &#8597;</th>
+                    <th onclick="sortTable(2)">Role &#8597;</th>
+                    <th onclick="sortTable(3)">Status &#8597;</th>
+                    <th onclick="sortTable(4)">Last Activity &#8597;</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="directory-tbody">
+                  <!-- Rows generated dynamically -->
+                </tbody>
+              </table>
             </div>
 
-            <!-- Scroll Feed Stream Area -->
-            <div class="csr-feed" id="csr-feed">
-              <div class="csr-node intro-node">
-                <div class="node-badge">START OF STREAM</div>
-                <h3>System Ingestion Pipeline</h3>
-                <p>Scroll down through telemetry layers to detect behavioral data capsules.</p>
+            <!-- Inspect Modal / Toast -->
+            <div class="inspect-drawer hidden" id="inspect-drawer">
+              <div class="drawer-header">
+                <span id="drawer-title">User Inspection</span>
+                <button class="btn-close" onclick="closeDrawer()">&times;</button>
               </div>
+              <div class="drawer-body" id="drawer-body"></div>
+            </div>
 
-              <div class="csr-node" data-node="1" onclick="harvestDataNode(this, 1)">
-                <div class="node-icon">&#128279;</div>
-                <div class="node-info">
-                  <h4>Data Capsule #01 &mdash; Keystroke Dynamics</h4>
-                  <p>Hold times &amp; inter-key flights &bull; Click to harvest</p>
+            <!-- Real-Time Mouse Biometrics Chips -->
+            <div class="feature-chips-bar">
+              <div class="chip"><span class="chip-label">Mean Velocity (x5)</span><span class="chip-val" id="feat-vel">&#8212;</span></div>
+              <div class="chip"><span class="chip-label">Std Velocity (x6)</span><span class="chip-val" id="feat-vel-std">&#8212;</span></div>
+              <div class="chip"><span class="chip-label">Mean Accel (x7)</span><span class="chip-val" id="feat-accel">&#8212;</span></div>
+              <div class="chip"><span class="chip-label">Cursor Position</span><span class="chip-val mono" id="cursor-pos">x: &#8212; y: &#8212;</span></div>
+              <div class="chip"><span class="chip-label">Mouse Events</span><span class="chip-val mono" id="mouse-counter">0 events</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- TAB 3: POLICY READER & AUDIT FEED (SCROLL & RHYTHM DYNAMICS)  -->
+        <!-- ============================================================== -->
+        <div class="ws-view hidden" id="view-ws-docs">
+          <div class="ws-card">
+            <div class="ws-card-header">
+              <div>
+                <h3>Security Documentation &amp; Continuous Audit Feed</h3>
+                <p>Scroll naturally through the policy guidelines and audit events. Captures realistic reading speeds, pauses, and click rhythms.</p>
+              </div>
+              <div class="reader-stats">
+                <span class="stat-pill" id="read-depth">Scroll: 0 px</span>
+                <span class="stat-pill" id="read-speed">Speed: 0.0 px/ms</span>
+              </div>
+            </div>
+
+            <!-- Scrollable Document Feed -->
+            <div class="docs-reader-feed" id="docs-reader-feed">
+              <article class="doc-section">
+                <div class="doc-badge">SECTION 1.0</div>
+                <h4>Continuous Behavioral Biometrics Framework</h4>
+                <p>Continuous Behavioral Authentication (CBA) evaluates real-time user telemetry across web application sessions. Unlike traditional Point-of-Entry (PoE) security mechanisms—such as passwords, time-based one-time tokens (TOTP), or static biometric readers—CBA operates as a persistent, non-intrusive background guardian.</p>
+                <div class="doc-callout">
+                  <strong>Architectural Decision:</strong> Telemetry collection must preserve user privacy. The client SDK records event timestamps and relative coordinate vectors, strictly avoiding the capture of raw keystroke character sequences or sensitive semantic content.
                 </div>
-                <button class="btn-harvest">Harvest</button>
-              </div>
+              </article>
 
-              <div class="csr-spacer">Telemetry payload verification block &bull; Keep scrolling &darr;</div>
+              <article class="doc-section">
+                <div class="doc-badge">SECTION 2.0</div>
+                <h4>Behavioral Modality Decomposition</h4>
+                <p>To eliminate inter-feature variance suppression, the 10-dimensional biometric telemetry vector is partitioned into three orthogonal behavioral modalities:</p>
+                <ul class="doc-list">
+                  <li><strong>Keyboard Dynamics ($\mathcal{M}_{\text{key}}$):</strong> Encompasses keystroke hold times and digraph flight times ($x_1 - x_4$).</li>
+                  <li><strong>Mouse Trajectory Dynamics ($\mathcal{M}_{\text{mouse}}$):</strong> Encompasses cursor velocity distributions, acceleration curves, and trajectory curvatures ($x_5 - x_7$).</li>
+                  <li><strong>Interaction Rhythm ($\mathcal{M}_{\text{rhythm}}$):</strong> Measures click down-up latencies, scroll speed distributions, and cognitive pause gaps ($x_8 - x_{10}$).</li>
+                </ul>
+              </article>
 
-              <div class="csr-node" data-node="2" onclick="harvestDataNode(this, 2)">
-                <div class="node-icon">&#9889;</div>
-                <div class="node-info">
-                  <h4>Data Capsule #02 &mdash; Mouse Velocity Curves</h4>
-                  <p>Ballistic movement &amp; micro-corrections &bull; Click to harvest</p>
+              <!-- Interactive Accordion Items -->
+              <div class="accordion-item" onclick="toggleAccordion(this)">
+                <div class="accordion-title">
+                  <span>&#128274; Policy 3.1: Adaptive Risk Hysteresis &amp; MFA Step-Up</span>
+                  <span class="accordion-arrow">&#9660;</span>
                 </div>
-                <button class="btn-harvest">Harvest</button>
-              </div>
-
-              <div class="csr-spacer">Continuous passive observer stream &bull; Accelerate scroll &darr;</div>
-
-              <div class="csr-node" data-node="3" onclick="harvestDataNode(this, 3)">
-                <div class="node-icon">&#128200;</div>
-                <div class="node-info">
-                  <h4>Data Capsule #03 &mdash; Acceleration Vectors</h4>
-                  <p>Second-derivative trajectory analysis &bull; Click to harvest</p>
+                <div class="accordion-content">
+                  <p>When computed risk crosses the threshold ($R \ge 60.0$), the system initiates a moving-average hysteresis evaluation over the preceding three windows ($R_{\text{avg}} = \frac{1}{3} \sum R_{t-i}$). If the elevated risk persists, the session triggers an out-of-band Step-Up challenge without immediate session invalidation.</p>
                 </div>
-                <button class="btn-harvest">Harvest</button>
               </div>
 
-              <div class="csr-spacer">Analyzing scroll rate variance &bull; Keep moving &darr;</div>
-
-              <div class="csr-node" data-node="4" onclick="harvestDataNode(this, 4)">
-                <div class="node-icon">&#128336;</div>
-                <div class="node-info">
-                  <h4>Data Capsule #04 &mdash; Click Latency Spectrum</h4>
-                  <p>Down-up duration &amp; rhythmic consistency &bull; Click to harvest</p>
+              <div class="accordion-item" onclick="toggleAccordion(this)">
+                <div class="accordion-title">
+                  <span>&#9889; Policy 3.2: Automated Session Revocation Protocols</span>
+                  <span class="accordion-arrow">&#9660;</span>
                 </div>
-                <button class="btn-harvest">Harvest</button>
-              </div>
-
-              <div class="csr-spacer">Deep telemetry stratum &bull; Scrolling depth 1400px+ &darr;</div>
-
-              <div class="csr-node" data-node="5" onclick="harvestDataNode(this, 5)">
-                <div class="node-icon">&#129504;</div>
-                <div class="node-info">
-                  <h4>Data Capsule #05 &mdash; Cognitive Pause Gaps</h4>
-                  <p>Inter-event idle distributions &bull; Click to harvest</p>
+                <div class="accordion-content">
+                  <p>In scenarios where the risk score exceeds the critical threshold ($R \ge 80.0$), the backend marks the active JSON Web Token as revoked in the Redis blacklist and terminates the WebSocket connection immediately to prevent session hijacking exploitation.</p>
                 </div>
-                <button class="btn-harvest">Harvest</button>
               </div>
 
-              <div class="csr-node complete-node">
-                <div class="node-badge success">STREAM COMPLETED</div>
-                <h3>All Telemetry Strata Traversed</h3>
-                <p>Scroll back to top or click reset to test reversed direction dynamics.</p>
+              <article class="doc-section">
+                <div class="doc-badge">SECTION 4.0</div>
+                <h4>Ecological Validity &amp; Task Invariance</h4>
+                <p>In machine learning biometrics, models trained on artificial tasks (such as high-speed gaming) suffer from distribution shift when evaluated during everyday knowledge work. By capturing natural document reading, form editing, and data sorting, the behavioral baseline accurately represents the authentic operator profile.</p>
+              </article>
+
+              <div class="doc-footer">
+                &#9989; All sections reviewed. Telemetry buffer continuously populated.
               </div>
             </div>
 
@@ -430,30 +384,28 @@
         </div>
 
         <!-- ============================================================== -->
-        <!-- VIEW 4: TELEMETRY & DEVELOPER DIAGNOSTICS                     -->
+        <!-- TAB 4: PIPELINE DIAGNOSTICS & TELEMETRY LOGS                   -->
         <!-- ============================================================== -->
-        <div class="game-view hidden" id="view-game-telemetry">
-          <div class="arena-card">
-            <div class="arena-hud">
-              <div class="hud-left">
-                <span class="hud-tag">&#128202; SYSTEM DIAGNOSTICS &amp; ACTIVITY LOG</span>
-                <span class="hud-phase-name">Live batch submissions &amp; risk decisions</span>
+        <div class="ws-view hidden" id="view-ws-diagnostics">
+          <div class="ws-card">
+            <div class="ws-card-header">
+              <div>
+                <h3>Telemetry Activity Log &amp; Model Decisions</h3>
+                <p>Live stream of client-side batch packaging, WebSocket/REST transmissions, and server-side risk verdicts.</p>
               </div>
-              <div class="hud-right">
-                <button class="btn-clear" onclick="clearLog()">Clear Log</button>
+              <div class="header-actions">
+                <button class="btn-sm secondary" onclick="clearLog()">&#128465; Clear Log</button>
               </div>
             </div>
 
-            <!-- Activity Log Stream -->
             <div class="activity-log" id="activity-log">
-              <div class="log-entry info">&#128276; CBA Test Lab ready. Sign in to begin monitoring.</div>
+              <div class="log-entry info">&#128276; CBA Enterprise Portal active. Sign in to monitor behavioral telemetry.</div>
             </div>
 
-            <!-- Manual Batch and Polling Controls -->
             <div class="manual-controls-panel">
               <div class="manual-controls-title">
                 <strong>Manual Pipeline Controls</strong>
-                <p>Force an immediate telemetry buffer flush or query enrollment and risk models.</p>
+                <p>Flush telemetry buffers immediately or query backend enrollment and risk models.</p>
               </div>
               <div class="action-btns">
                 <button class="btn-action" id="flush-btn" onclick="manualFlush()" disabled>&#9889; Flush Batch Now</button>
