@@ -1,10 +1,8 @@
-/**
- * app.js  —  CBA SaaS Workspace Application
- * Realistic Enterprise IAM & Security Operations Portal
- * Telemetry collected:
- *  - Form entry: natural typing cadence, keystroke hold and flight intervals (x1–x4)
- *  - Directory table: pointer navigation, hover targeting, button click cadence (x5–x7)
- *  - Policy reader: realistic unhurried document reading, scroll velocity, cognitive pauses (x8–x10)
+﻿/**
+ * app.js  —  CBA Test Lab main application
+ * Handles: auth (register/login/logout), session start,
+ *           SDK init, live UI updates, enrollment polling,
+ *           feature chip live estimates.
  */
 
 const API = "http://localhost:8080/api/v1";
@@ -15,7 +13,7 @@ let sessionId = null;
 let sdk       = null;
 let enrollmentTimer = null;
 
-// Telemetry counters for live chip calculation
+// Local telemetry counters for live chip estimates
 const _tel = {
   keyHold: [], flight: [], lastKeyDown: null, lastKeyUp: null,
   vel: [], lastMouseT: null, lastMouseX: null, lastMouseY: null,
@@ -28,64 +26,45 @@ const _tel = {
 // ─── HELPERS ────────────────────────────────────────────────
 function mean(arr) {
   if (!arr.length) return 0;
-  return arr.reduce((a, b) => a + b, 0) / arr.length;
+  return arr.reduce((a,b)=>a+b,0) / arr.length;
 }
 function stdDev(arr) {
   if (arr.length < 2) return 0;
   const m = mean(arr);
-  return Math.sqrt(arr.reduce((s, v) => s + Math.pow(v - m, 2), 0) / arr.length);
+  return Math.sqrt(arr.reduce((s,v)=>s+Math.pow(v-m,2),0) / arr.length);
 }
 function fmt(v, unit="ms") {
   if (!isFinite(v) || v === 0) return "—";
   return v.toFixed(1) + unit;
 }
 function now() {
-  return new Date().toLocaleTimeString("en-IN", { hour12: false });
+  return new Date().toLocaleTimeString("en-IN", {hour12:false});
 }
 
-// ─── LOGGING ────────────────────────────────────────────────
+// ─── LOG ────────────────────────────────────────────────────
 function log(msg, type="info") {
   const box = document.getElementById("activity-log");
-  if (!box) return;
-  const el = document.createElement("div");
+  const el  = document.createElement("div");
   el.className = `log-entry ${type}`;
   el.innerHTML = `<span class="log-time">[${now()}]</span> ${msg}`;
   box.appendChild(el);
   box.scrollTop = box.scrollHeight;
 }
 function clearLog() {
-  const box = document.getElementById("activity-log");
-  if (box) box.innerHTML = "";
+  document.getElementById("activity-log").innerHTML = "";
 }
 
-// ─── WORKSPACE TAB SWITCHER ─────────────────────────────────
-function switchWorkspaceTab(tabId) {
-  const tabs = {
-    form:        { tab: "tab-ws-form",        view: "view-ws-form" },
-    table:       { tab: "tab-ws-table",       view: "view-ws-table" },
-    docs:        { tab: "tab-ws-docs",        view: "view-ws-docs" },
-    diagnostics: { tab: "tab-ws-diagnostics", view: "view-ws-diagnostics" }
-  };
-
-  Object.entries(tabs).forEach(([key, config]) => {
-    const tabEl  = document.getElementById(config.tab);
-    const viewEl = document.getElementById(config.view);
-    if (tabEl)  tabEl.classList.toggle("active", key === tabId);
-    if (viewEl) viewEl.classList.toggle("hidden", key !== tabId);
-  });
-}
-
-// ─── AUTH TAB SWITCH ─────────────────────────────────────────
+// ─── AUTH TAB SWITCH ────────────────────────────────────────
 function switchTab(tab) {
-  document.getElementById("login-form").classList.toggle("hidden", tab !== "login");
+  document.getElementById("login-form").classList.toggle("hidden",    tab !== "login");
   document.getElementById("register-form").classList.toggle("hidden", tab !== "register");
-  document.getElementById("tab-login").classList.toggle("active", tab === "login");
+  document.getElementById("tab-login").classList.toggle("active",    tab === "login");
   document.getElementById("tab-register").classList.toggle("active", tab === "register");
   document.getElementById("login-error").classList.add("hidden");
   document.getElementById("register-error").classList.add("hidden");
 }
 
-// ─── REGISTRATION & LOGIN ───────────────────────────────────
+// ─── REGISTER ───────────────────────────────────────────────
 async function handleRegister(e) {
   e.preventDefault();
   const btn = document.getElementById("register-btn");
@@ -98,7 +77,7 @@ async function handleRegister(e) {
   };
   try {
     const res = await fetch(`${API}/auth/register`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
+      method:"POST", headers:{"Content-Type":"application/json"},
       body: JSON.stringify(body)
     });
     const data = await res.json();
@@ -110,6 +89,7 @@ async function handleRegister(e) {
   } finally { setLoading(btn, false); }
 }
 
+// ─── LOGIN ───────────────────────────────────────────────────
 async function handleLogin(e) {
   e.preventDefault();
   const btn = document.getElementById("login-btn");
@@ -121,7 +101,7 @@ async function handleLogin(e) {
   };
   try {
     const res = await fetch(`${API}/auth/login`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
+      method:"POST", headers:{"Content-Type":"application/json"},
       body: JSON.stringify(body)
     });
     const data = await res.json();
@@ -133,21 +113,19 @@ async function handleLogin(e) {
   } finally { setLoading(btn, false); }
 }
 
+// ─── POST-LOGIN FLOW ─────────────────────────────────────────
 async function onLoginSuccess(username) {
   document.getElementById("nav-username").textContent = username;
   document.getElementById("auth-overlay").classList.remove("active");
   document.getElementById("app").classList.remove("hidden");
   document.getElementById("session-badge").textContent = "Starting session…";
 
-  log(`✅ Signed in as <strong>${username}</strong> to SaaS Workspace`, "success");
+  log(`✅ Signed in as <strong>${username}</strong>`, "success");
 
-  // Enable manual pipeline buttons
-  const flushBtn = document.getElementById("flush-btn");
-  const refEnrBtn = document.getElementById("refresh-enrollment-btn");
-  const refRiskBtn = document.getElementById("refresh-risk-btn");
-  if (flushBtn) flushBtn.disabled = false;
-  if (refEnrBtn) refEnrBtn.disabled = false;
-  if (refRiskBtn) refRiskBtn.disabled = false;
+  // Enable buttons
+  document.getElementById("flush-btn").disabled = false;
+  document.getElementById("refresh-enrollment-btn").disabled = false;
+  document.getElementById("refresh-risk-btn").disabled = false;
 
   await startSession();
 }
@@ -177,7 +155,7 @@ async function startSession() {
   }
 }
 
-// ─── SDK INITIALIZATION ──────────────────────────────────────
+// ─── SDK INIT ────────────────────────────────────────────────
 function initSDK() {
   sdk = new window.CBASDK();
   sdk.init({
@@ -188,13 +166,16 @@ function initSDK() {
     onRiskDecision: handleRiskDecision
   });
 
-  log("🧠 CBA Passive SDK active — streaming authentic web interaction telemetry", "info");
+  log("🧠 CBA SDK initialized — behavioral monitoring active", "info");
 
+  // Start UI ticker
   setInterval(updateSDKStats, 1000);
+
+  // Attach local telemetry listeners (for live chip estimates)
   attachLocalTelemetry();
 }
 
-// ─── RISK DECISION HANDLER & GAUGE ───────────────────────────
+// ─── RISK DECISION CALLBACK ──────────────────────────────────
 function handleRiskDecision(data) {
   const score = data.riskScore ?? 0;
   const level = (data.riskLevel || "WAITING").toUpperCase();
@@ -209,32 +190,36 @@ function handleRiskDecision(data) {
   document.getElementById("info-batches").textContent = sdk ? sdk.batchesSent : 0;
 
   const type = level === "CRITICAL" ? "critical" : level === "HIGH" ? "warn" : "success";
-  log(`📊 Live Risk: <strong>${score.toFixed(1)}</strong> &bull; Level: <strong>${level}</strong> &bull; Status: ${status}`, type);
+  log(`📊 Risk: <strong>${score.toFixed(1)}</strong> — Level: <strong>${level}</strong> — Status: ${status}`, type);
 }
 
+// ─── GAUGE UPDATE ─────────────────────────────────────────────
 function updateGauge(score, level) {
-  const arc    = document.getElementById("gauge-arc");
-  const needle = document.getElementById("gauge-needle");
-  const stop1  = document.getElementById("arc-stop1");
-  const stop2  = document.getElementById("arc-stop2");
+  const arc      = document.getElementById("gauge-arc");
+  const needle   = document.getElementById("gauge-needle");
+  const stop1    = document.getElementById("arc-stop1");
+  const stop2    = document.getElementById("arc-stop2");
 
-  const pct    = Math.min(score, 100) / 100;
-  const offset = 251.2 * (1 - pct);
-  if (arc) arc.style.strokeDashoffset = offset;
+  // Arc: 251.2 is full circumference of the half-arc
+  const pct     = Math.min(score, 100) / 100;
+  const offset  = 251.2 * (1 - pct);
+  arc.style.strokeDashoffset = offset;
 
+  // Needle: -90deg = 0, +90deg = 100
   const angle = -90 + pct * 180;
-  if (needle) needle.style.transform = `rotate(${angle}deg)`;
+  needle.style.transform = `rotate(${angle}deg)`;
 
+  // Color by level
   const colors = {
-    LOW:      ["#10b981", "#34d399"],
-    MEDIUM:   ["#f59e0b", "#fbbf24"],
-    HIGH:     ["#ef4444", "#f87171"],
-    CRITICAL: ["#dc2626", "#ef4444"],
-    WAITING:  ["#6366f1", "#8b5cf6"]
+    LOW:      ["#10b981","#34d399"],
+    MEDIUM:   ["#f59e0b","#fbbf24"],
+    HIGH:     ["#ef4444","#f87171"],
+    CRITICAL: ["#dc2626","#ef4444"],
+    WAITING:  ["#6366f1","#8b5cf6"]
   };
   const [c1, c2] = colors[level] || colors.WAITING;
-  if (stop1) stop1.setAttribute("stop-color", c1);
-  if (stop2) stop2.setAttribute("stop-color", c2);
+  stop1.setAttribute("stop-color", c1);
+  stop2.setAttribute("stop-color", c2);
 }
 
 // ─── ENROLLMENT POLLING ──────────────────────────────────────
@@ -266,6 +251,7 @@ async function refreshEnrollment() {
   } catch(_) {}
 }
 
+// ─── RISK MANUAL REFRESH ─────────────────────────────────────
 async function refreshRisk() {
   if (!jwt || !sessionId) return;
   try {
@@ -277,6 +263,7 @@ async function refreshRisk() {
   } catch(_) {}
 }
 
+// ─── SDK STATS TICKER ─────────────────────────────────────────
 function updateSDKStats() {
   if (!sdk) return;
   document.getElementById("info-window").textContent   = sdk.windowNumber;
@@ -284,18 +271,18 @@ function updateSDKStats() {
   document.getElementById("info-buffered").textContent = sdk.bufferedCount;
 }
 
+// ─── MANUAL FLUSH ─────────────────────────────────────────────
 function manualFlush() {
   if (!sdk) return;
-  log("⚡ Manual telemetry flush triggered", "info");
+  log("⚡ Manual flush triggered", "info");
   sdk.flush();
 }
 
-// ─── LOCAL TELEMETRY LISTENERS ───────────────────────────────
+// ─── LOCAL TELEMETRY (chip estimates) ────────────────────────
 function attachLocalTelemetry() {
   window.addEventListener("keydown", e => {
     _tel.keyEvents++;
-    const el = document.getElementById("key-counter");
-    if (el) el.textContent = _tel.keyEvents + " events";
+    document.getElementById("key-counter").textContent = _tel.keyEvents + " events";
     const t = Date.now();
     if (_tel.lastKeyUp !== null) _tel.flight.push(t - _tel.lastKeyUp);
     _tel.lastKeyDown = t;
@@ -313,17 +300,14 @@ function attachLocalTelemetry() {
 
   window.addEventListener("mousemove", e => {
     _tel.mouseEvents++;
-    const cnt = document.getElementById("mouse-counter");
-    if (cnt) cnt.textContent = _tel.mouseEvents + " events";
-    const cur = document.getElementById("cursor-pos");
-    if (cur) cur.textContent = `x: ${e.clientX}  y: ${e.clientY}`;
-
+    document.getElementById("mouse-counter").textContent = _tel.mouseEvents + " events";
+    document.getElementById("cursor-pos").textContent = `x: ${e.clientX}  y: ${e.clientY}`;
     const t = Date.now();
     if (_tel.lastMouseT && _tel.lastMouseX !== null) {
       const dx = e.clientX - _tel.lastMouseX;
       const dy = e.clientY - _tel.lastMouseY;
       const dt = t - _tel.lastMouseT;
-      if (dt > 0) _tel.vel.push(Math.sqrt(dx * dx + dy * dy) / dt);
+      if (dt > 0) _tel.vel.push(Math.sqrt(dx*dx+dy*dy)/dt);
     }
     _tel.lastMouseT = t; _tel.lastMouseX = e.clientX; _tel.lastMouseY = e.clientY;
     updateIdleGap(t);
@@ -332,14 +316,13 @@ function attachLocalTelemetry() {
 
   window.addEventListener("scroll", () => {
     _tel.scrollEvents++;
-    const el = document.getElementById("scroll-counter");
-    if (el) el.textContent = _tel.scrollEvents + " events";
+    document.getElementById("scroll-counter").textContent = _tel.scrollEvents + " events";
     const t  = Date.now();
     const sx = window.scrollX, sy = window.scrollY;
     if (_tel.lastScrollT && _tel.lastScrollX !== null) {
       const dx = sx - _tel.lastScrollX, dy = sy - _tel.lastScrollY;
       const dt = t - _tel.lastScrollT;
-      if (dt > 0) _tel.scrollSpeeds.push(Math.sqrt(dx * dx + dy * dy) / dt);
+      if (dt > 0) _tel.scrollSpeeds.push(Math.sqrt(dx*dx+dy*dy)/dt);
     }
     _tel.lastScrollT = t; _tel.lastScrollX = sx; _tel.lastScrollY = sy;
     updateIdleGap(t);
@@ -361,208 +344,50 @@ function updateIdleGap(t) {
 }
 
 function updateKeyChips() {
-  const h = document.getElementById("feat-hold");
-  const hs = document.getElementById("feat-hold-std");
-  const f = document.getElementById("feat-flight");
-  const fs = document.getElementById("feat-flight-std");
-  if (h)  h.textContent  = fmt(mean(_tel.keyHold));
-  if (hs) hs.textContent = fmt(stdDev(_tel.keyHold));
-  if (f)  f.textContent  = fmt(mean(_tel.flight));
-  if (fs) fs.textContent = fmt(stdDev(_tel.flight));
+  document.getElementById("feat-hold").textContent     = fmt(mean(_tel.keyHold));
+  document.getElementById("feat-hold-std").textContent = fmt(stdDev(_tel.keyHold));
+  document.getElementById("feat-flight").textContent   = fmt(mean(_tel.flight));
+  document.getElementById("feat-flight-std").textContent= fmt(stdDev(_tel.flight));
 }
-
 function updateMouseChips() {
-  const v = document.getElementById("feat-vel");
-  const vs = document.getElementById("feat-vel-std");
-  const a = document.getElementById("feat-accel");
-  if (v)  v.textContent  = fmt(mean(_tel.vel), " px/ms");
-  if (vs) vs.textContent = fmt(stdDev(_tel.vel), " px/ms");
-  const accels = _tel.vel.slice(1).map((vi, i) => vi - _tel.vel[i]);
-  if (a)  a.textContent  = fmt(mean(accels), " px/ms²");
+  document.getElementById("feat-vel").textContent     = fmt(mean(_tel.vel), " px/ms");
+  document.getElementById("feat-vel-std").textContent = fmt(stdDev(_tel.vel), " px/ms");
+  // Acceleration estimate
+  const v = _tel.vel;
+  const accels = v.slice(1).map((vi,i)=>vi - v[i]);
+  document.getElementById("feat-accel").textContent  = fmt(mean(accels), " px/ms²");
 }
-
 function updateScrollChips() {
-  const c = document.getElementById("feat-click");
-  const s = document.getElementById("feat-scroll");
-  const i = document.getElementById("feat-idle");
-  if (c) c.textContent = fmt(mean(_tel.clickIntervals));
-  if (s) s.textContent = fmt(mean(_tel.scrollSpeeds), " px/ms");
-  if (i) i.textContent = fmt(mean(_tel.idleGaps));
+  document.getElementById("feat-click").textContent  = fmt(mean(_tel.clickIntervals));
+  document.getElementById("feat-scroll").textContent = fmt(mean(_tel.scrollSpeeds), " px/ms");
+  document.getElementById("feat-idle").textContent   = fmt(mean(_tel.idleGaps));
 }
 
-
-// =========================================================================
-// TAB 1: INCIDENT REPORT FORM (AUTHENTIC TYPING CADENCE)
-// =========================================================================
-function populateSampleText() {
-  const subjects = [
-    "Unusual token refresh spike from primary cluster IP",
-    "Continuous authentication triggered step-up on user ID 14",
-    "Degraded ML inference latency in isolation forest microservice",
-    "Audit log review: cross-tenant JWT authorization attempt"
-  ];
-  const descriptions = [
-    "During regular audit review between 14:00 and 14:30 UTC, we observed anomalous session activity originating from an unmapped subnet. The continuous behavioral engine recorded sudden divergence in pointer velocity and keystroke hold times, pushing the moving average risk from 14.2% up into the high tier. Recommend immediate credential revocation and token invalidation.",
-    "The client SDK reported consecutive batch drops due to network throttling. After restoring connection, telemetry buffering resumed normally and risk evaluation returned to baseline levels. No data loss observed across PostgreSQL tables."
-  ];
-
-  document.getElementById("ticket-subject").value = subjects[Math.floor(Math.random() * subjects.length)];
-  document.getElementById("ticket-description").value = descriptions[Math.floor(Math.random() * descriptions.length)];
-  document.getElementById("ticket-remediation").value = "Session flagged; monitored by SOC; biometric profile intact.";
-  log("📋 Sample ticket scenario loaded into form", "info");
+// ─── TARGET CLICK ANIMATION ──────────────────────────────────
+function targetClicked(id) {
+  const el = document.getElementById(id);
+  el.classList.remove("hit");
+  void el.offsetWidth;
+  el.classList.add("hit");
+  log(`🎯 Mouse target <strong>${id}</strong> clicked`, "info");
 }
 
-function resetFormFields() {
-  document.getElementById("ticket-subject").value = "";
-  document.getElementById("ticket-description").value = "";
-  document.getElementById("ticket-remediation").value = "";
-  document.getElementById("form-toast").classList.add("hidden");
+function clickCardHit(el) {
+  el.classList.remove("hit");
+  void el.offsetWidth;
+  el.classList.add("hit");
 }
 
-function handleFormSubmit(e) {
-  e.preventDefault();
-  const toast = document.getElementById("form-toast");
-  if (toast) {
-    toast.classList.remove("hidden");
-    setTimeout(() => toast.classList.add("hidden"), 3500);
-  }
-  if (sdk) sdk.flush();
-  log("📝 Incident ticket submitted. Form interaction telemetry flushed to backend.", "success");
-}
-
-
-// =========================================================================
-// TAB 2: USER DIRECTORY TABLE (POINTER TARGETING & CLICK DYNAMICS)
-// =========================================================================
-const DIRECTORY_USERS = [
-  { id: 101, username: "alex.mercer", role: "Admin", status: "ACTIVE", lastSeen: "2 mins ago", email: "alex.m@cloudsecure.io", mfa: "Enabled (TOTP)" },
-  { id: 102, username: "sarah.chen", role: "Analyst", status: "ACTIVE", lastSeen: "5 mins ago", email: "sarah.c@cloudsecure.io", mfa: "Enabled (FIDO2)" },
-  { id: 103, username: "david.ross", role: "Auditor", status: "PENDING", lastSeen: "1 hour ago", email: "david.r@cloudsecure.io", mfa: "Not Configured" },
-  { id: 104, username: "priya.sharma", role: "Admin", status: "ACTIVE", lastSeen: "12 mins ago", email: "priya.s@cloudsecure.io", mfa: "Enabled (WebAuthn)" },
-  { id: 105, username: "marcus.vance", role: "Analyst", status: "SUSPENDED", lastSeen: "2 days ago", email: "marcus.v@cloudsecure.io", mfa: "Revoked" },
-  { id: 106, username: "elena.rostova", role: "Auditor", status: "ACTIVE", lastSeen: "28 mins ago", email: "elena.r@cloudsecure.io", mfa: "Enabled (TOTP)" },
-  { id: 107, username: "kevin.patel", role: "Analyst", status: "ACTIVE", lastSeen: "Just now", email: "kevin.p@cloudsecure.io", mfa: "Enabled (FIDO2)" },
-  { id: 108, username: "rachel.adams", role: "Admin", status: "PENDING", lastSeen: "3 hours ago", email: "rachel.a@cloudsecure.io", mfa: "Pending Setup" }
-];
-
-let tableSortDir = 1;
-
-function renderDirectoryTable(users) {
-  const tbody = document.getElementById("directory-tbody");
-  if (!tbody) return;
-  tbody.innerHTML = "";
-
-  users.forEach(u => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td class="mono">#${u.id}</td>
-      <td><strong>${u.username}</strong><br/><small style="color:var(--text3)">${u.email}</small></td>
-      <td><span class="role-tag">${u.role}</span></td>
-      <td><span class="status-pill ${u.status.toLowerCase()}">${u.status}</span></td>
-      <td style="color:var(--text2)">${u.lastSeen}</td>
-      <td>
-        <button class="btn-table-action" onclick="inspectUser(${u.id})">Inspect</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-function filterDirectoryTable() {
-  const query = (document.getElementById("table-search")?.value || "").toLowerCase();
-  const roleFilter = document.getElementById("table-filter-role")?.value || "all";
-  const statusFilter = document.getElementById("table-filter-status")?.value || "all";
-
-  const filtered = DIRECTORY_USERS.filter(u => {
-    const matchesQuery = u.username.toLowerCase().includes(query) || u.email.toLowerCase().includes(query);
-    const matchesRole = roleFilter === "all" || u.role === roleFilter;
-    const matchesStatus = statusFilter === "all" || u.status === statusFilter;
-    return matchesQuery && matchesRole && matchesStatus;
-  });
-
-  renderDirectoryTable(filtered);
-}
-
-function sortTable(colIndex) {
-  tableSortDir = -tableSortDir;
-  const sorted = [...DIRECTORY_USERS].sort((a, b) => {
-    let valA, valB;
-    if (colIndex === 0) { valA = a.id; valB = b.id; }
-    else if (colIndex === 1) { valA = a.username; valB = b.username; }
-    else if (colIndex === 2) { valA = a.role; valB = b.role; }
-    else if (colIndex === 3) { valA = a.status; valB = b.status; }
-    else { valA = a.lastSeen; valB = b.lastSeen; }
-
-    if (valA < valB) return -1 * tableSortDir;
-    if (valA > valB) return 1 * tableSortDir;
-    return 0;
-  });
-  renderDirectoryTable(sorted);
-}
-
-function inspectUser(userId) {
-  const u = DIRECTORY_USERS.find(x => x.id === userId);
-  if (!u) return;
-
-  const drawer = document.getElementById("inspect-drawer");
-  const title = document.getElementById("drawer-title");
-  const body = document.getElementById("drawer-body");
-
-  if (title) title.textContent = `User Profile Inspection — ${u.username}`;
-  if (body) {
-    body.innerHTML = `
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:6px;">
-        <div><strong>User ID:</strong> <span class="mono">#${u.id}</span></div>
-        <div><strong>Role:</strong> ${u.role}</div>
-        <div><strong>Email:</strong> ${u.email}</div>
-        <div><strong>Status:</strong> <span class="status-pill ${u.status.toLowerCase()}">${u.status}</span></div>
-        <div><strong>MFA Method:</strong> ${u.mfa}</div>
-        <div><strong>Assigned Tenant:</strong> Production-US-East</div>
-      </div>
-    `;
-  }
-  if (drawer) drawer.classList.remove("hidden");
-  log(`👤 Inspected user record <strong>#${userId} (${u.username})</strong>`, "info");
-}
-
-function closeDrawer() {
-  const drawer = document.getElementById("inspect-drawer");
-  if (drawer) drawer.classList.add("hidden");
-}
-
-
-// =========================================================================
-// TAB 3: POLICY READER & AUDIT FEED (READING DYNAMICS & SCROLL)
-// =========================================================================
-function toggleAccordion(el) {
-  el.classList.toggle("open");
-}
-
-function attachDocsScrollTracker() {
-  const feed = document.getElementById("docs-reader-feed");
-  if (!feed) return;
-  feed.addEventListener("scroll", () => {
-    const depthEl = document.getElementById("read-depth");
-    const speedEl = document.getElementById("read-speed");
-    if (depthEl) depthEl.textContent = `Scroll: ${Math.round(feed.scrollTop)} px`;
-    if (speedEl && _tel.scrollSpeeds.length) {
-      speedEl.textContent = `Speed: ${mean(_tel.scrollSpeeds).toFixed(2)} px/ms`;
-    }
-  }, { passive: true });
-}
-
-
-// ─── LOGOUT FLOW ─────────────────────────────────────────────
+// ─── LOGOUT ──────────────────────────────────────────────────
 async function handleLogout() {
   if (sdk) { sdk.flush(); sdk.stopMonitoring(); sdk = null; }
   if (sessionId && jwt) {
     fetch(`${API}/session/${sessionId}/terminate`, {
-      method: "POST", headers: { "Authorization": "Bearer " + jwt }
-    }).catch(() => {});
+      method:"POST", headers:{"Authorization":"Bearer "+jwt}
+    }).catch(()=>{});
   }
   if (enrollmentTimer) clearInterval(enrollmentTimer);
   jwt = null; sessionId = null;
-
   document.getElementById("app").classList.add("hidden");
   document.getElementById("auth-overlay").classList.add("active");
   document.getElementById("session-badge").classList.remove("active");
@@ -570,11 +395,11 @@ async function handleLogout() {
   document.getElementById("session-badge").textContent = "Initializing…";
   document.getElementById("login-username").value = "";
   document.getElementById("login-password").value = "";
-
-  log("👋 Logged out from Workspace Portal", "info");
+  log("👋 Logged out", "info");
   switchTab("login");
 }
 
+// ─── FORM UTILS ──────────────────────────────────────────────
 function setLoading(btn, loading) {
   btn.disabled = loading;
   btn.querySelector(".btn-text").style.display    = loading ? "none"  : "";
@@ -591,9 +416,3 @@ function clearError(id) {
   el.textContent = "";
   el.classList.add("hidden");
 }
-
-// ─── INITIALIZATION ──────────────────────────────────────────
-window.addEventListener("DOMContentLoaded", () => {
-  renderDirectoryTable(DIRECTORY_USERS);
-  attachDocsScrollTracker();
-});
